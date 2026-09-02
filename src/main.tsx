@@ -1,17 +1,30 @@
-import { StrictMode } from "react";
+import { lazy, StrictMode, Suspense } from "react";
 import { createRoot } from "react-dom/client";
+import { LoaderCircle } from "lucide-react";
 
 import { TooltipProvider } from "#components/ui/tooltip";
 import { Toaster } from "#components/ui/toast";
-import App from "./App";
 
 import "./index.css";
 
-createRoot(document.getElementById("root")!).render(
+const App = lazy(() => import("./App"));
+const root = createRoot(document.getElementById("root")!);
+
+root.render(
   <StrictMode>
-    <TooltipProvider>
-      <App />
-    </TooltipProvider>
-    <Toaster />
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center gap-2 text-sm text-muted-foreground">
+          <LoaderCircle className="size-4 animate-spin" />
+          <span>Loading editor…</span>
+        </div>
+      }
+    >
+      <TooltipProvider>
+        <App />
+      </TooltipProvider>
+      <Toaster />
+    </Suspense>
   </StrictMode>,
 );
+document.getElementById("static-shell")?.remove();

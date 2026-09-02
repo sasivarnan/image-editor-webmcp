@@ -4,29 +4,28 @@ A lightweight React image editor for adding text, shapes, blur regions, and draw
 
 ## WebMCP tools
 
-| Tool | Purpose |
-|---|---|
-| `image_editor_get_status` | Read image, mode, and zoom status |
-| `image_editor_list_objects` | Inspect editable objects and coordinates |
-| `image_editor_select_object` | Select an object by ID |
-| `image_editor_add_text` | Add editable text |
-| `image_editor_add_shape` | Add a rectangle or circle |
-| `image_editor_add_blur` | Add a movable blur region |
-| `image_editor_toggle_drawing` | Toggle interactive free drawing |
-| `image_editor_draw_stroke` | Draw an editable stroke from points |
-| `image_editor_draw_arrow` | Draw an editable arrow |
-| `image_editor_move_selected` | Move the selected object by canvas coordinates |
-| `image_editor_rotate_selected` | Rotate the selected object |
-| `image_editor_resize_selected` | Resize the selected object |
-| `image_editor_set_color` | Set object or active drawing color |
-| `image_editor_set_stroke_width` | Set stroke width |
-| `image_editor_set_text_style` | Change selected text styling |
-| `image_editor_crop` | Start, apply, or cancel cropping |
-| `image_editor_history` | Undo or redo an edit |
-| `image_editor_zoom` | Zoom in, out, or reset |
-| `image_editor_delete_selected` | Delete the selected object |
-| `image_editor_clear_all` | Remove all editable objects |
-| `image_editor_export` | Export the canvas as a PNG download |
+| Tool                            | Purpose                                        |
+| ------------------------------- | ---------------------------------------------- |
+| `image_editor_get_status`       | Read image, mode, and zoom status              |
+| `image_editor_list_objects`     | Inspect editable objects and coordinates       |
+| `image_editor_select_object`    | Select an object by ID                         |
+| `image_editor_add_text`         | Add editable text                              |
+| `image_editor_add_shape`        | Add a rectangle or circle                      |
+| `image_editor_add_blur`         | Add a movable blur region                      |
+| `image_editor_toggle_drawing`   | Toggle interactive free drawing                |
+| `image_editor_draw_stroke`      | Draw an editable stroke from points            |
+| `image_editor_draw_arrow`       | Draw an editable arrow                         |
+| `image_editor_move_selected`    | Move the selected object by canvas coordinates |
+| `image_editor_rotate_selected`  | Rotate the selected object                     |
+| `image_editor_resize_selected`  | Resize the selected object                     |
+| `image_editor_set_color`        | Set object or active drawing color             |
+| `image_editor_set_stroke_width` | Set stroke width                               |
+| `image_editor_crop`             | Start, apply, or cancel cropping               |
+| `image_editor_history`          | Undo or redo an edit                           |
+| `image_editor_zoom`             | Zoom in, out, or reset                         |
+| `image_editor_delete_selected`  | Delete the selected object                     |
+| `image_editor_clear_all`        | Remove all editable objects                    |
+| `image_editor_export`           | Export the canvas as a PNG download            |
 
 Positions use image/canvas coordinates, not browser-page coordinates.
 

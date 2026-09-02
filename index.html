@@ -4,10 +4,38 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>image-editor-webmcp</title>
+    <title>Image Editor for Humans and Browser Agents</title>
+    <meta name="description" content="Edit images visually or control the editor with browser agents through WebMCP." />
+    <meta name="author" content="Sasivarnan R" />
+    <meta name="creator" content="Sasivarnan R" />
+    <meta property="og:title" content="Image Editor for Humans and Browser Agents" />
+    <meta property="og:description" content="Create, annotate, style, and export images with people and browser agents working together." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Image Editor WebMCP" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@iamsasivarnan" />
+    <meta name="twitter:creator" content="@iamsasivarnan" />
+    <meta name="twitter:title" content="Image Editor for Humans and Browser Agents" />
+    <meta name="twitter:description" content="A human-friendly image editor with WebMCP tools for browser agents." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Image Editor for Humans and Browser Agents",
+        "description": "A browser image editor that people and agents can use together through WebMCP.",
+        "applicationCategory": "MultimediaApplication",
+        "author": {
+          "@type": "Person",
+          "name": "Sasivarnan R"
+        },
+        "featureList": ["Image annotation", "Freehand drawing", "Blur regions", "WebMCP browser tools"]
+      }
+    </script>
   </head>
-  <body>
-    <div id="root"></div>
+  <body style="margin: 0; background: oklch(0.145 0 0);">
+    <main id="static-shell" aria-hidden="true"></main>
+    <div id="root" aria-live="polite"></div>
+    <noscript>This image editor requires JavaScript. Enable JavaScript to use the editor and its WebMCP tools.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

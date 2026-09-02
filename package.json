@@ -2,6 +2,7 @@
   "name": "image-editor-webmcp",
   "private": true,
   "version": "0.0.0",
+  "license": "MIT",
   "type": "module",
   "imports": {
     "#components/*": "./src/components/*.tsx",

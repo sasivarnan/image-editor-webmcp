@@ -1,35 +1,80 @@
-# React + TypeScript + Vite
+# Image Editor for Humans and Browser Agents
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A lightweight React image editor for adding text, shapes, blur regions, and drawings. It works for people through a visual toolbar and for browser agents through WebMCP.
 
-Currently, two official plugins are available:
+## WebMCP tools
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Tool | Purpose |
+|---|---|
+| `image_editor_get_status` | Read image, mode, and zoom status |
+| `image_editor_list_objects` | Inspect editable objects and coordinates |
+| `image_editor_select_object` | Select an object by ID |
+| `image_editor_add_text` | Add editable text |
+| `image_editor_add_shape` | Add a rectangle or circle |
+| `image_editor_add_blur` | Add a movable blur region |
+| `image_editor_toggle_drawing` | Toggle interactive free drawing |
+| `image_editor_draw_stroke` | Draw an editable stroke from points |
+| `image_editor_draw_arrow` | Draw an editable arrow |
+| `image_editor_move_selected` | Move the selected object by canvas coordinates |
+| `image_editor_rotate_selected` | Rotate the selected object |
+| `image_editor_resize_selected` | Resize the selected object |
+| `image_editor_set_color` | Set object or active drawing color |
+| `image_editor_set_stroke_width` | Set stroke width |
+| `image_editor_set_text_style` | Change selected text styling |
+| `image_editor_crop` | Start, apply, or cancel cropping |
+| `image_editor_history` | Undo or redo an edit |
+| `image_editor_zoom` | Zoom in, out, or reset |
+| `image_editor_delete_selected` | Delete the selected object |
+| `image_editor_clear_all` | Remove all editable objects |
+| `image_editor_export` | Export the canvas as a PNG download |
 
-## React Compiler
+Positions use image/canvas coordinates, not browser-page coordinates.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## High-level architecture
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```mermaid
+flowchart LR
+  Person[Person] -->|Plain-language request| Agent[Browser agent]
+  Agent -->|WebMCP tool calls| Page[React image editor page]
+  Page --> Tools[WebMCP tool hook]
+  Tools --> Actions[Shared editor actions]
+  Actions --> Canvas[Fabric.js canvas]
+  Page --> Store[XState store]
+  Canvas --> Page
+  Page -->|Visual result and export| Person
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+WebMCP registration lives in `src/webmcp/use-image-editor-tools.ts`. Shared canvas mutations live in `src/editor/editor-actions.ts`, application state lives in `src/editor/editor-store.ts`, and the toolbar/editor presentation is split into components under `src/components/editor/`.
+
+## Run locally
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Create a production build with:
+
+```bash
+pnpm build
+```
+
+## Why this is a strong fit for WebMCP
+
+Image editing is naturally multi-step: add an object, select it, style it, position it, adjust it, and export it. These steps are easy for a person but awkward for an agent when the only interface is a visual canvas. WebMCP exposes the editor's real actions as structured browser tools, so an agent can work with the page instead of guessing at clicks and coordinates.
+
+## How it creates a better experience
+
+People can describe the outcome in plain language while the agent handles the sequence of edits. The person remains in control of the visual result, and the agent can use object IDs, canvas coordinates, and status checks to make precise changes. This makes tasks such as privacy redaction, visual callouts, and social-media annotations possible in one turn.
+
+## What people and agents can do together
+
+For example:
+
+> Add a blur over the face, draw a red arrow toward the product, add a bold title in the top-left, move it to a precise position, and export the image.
+
+The agent can inspect what is on the canvas, select the right object, make targeted edits, and confirm completion. Before WebMCP, that workflow required manually finding controls and dragging objects through several separate interactions.
+
+## How WebMCP is implemented
+
+The page registers structured tools with WebMCP. Tool calls delegate to shared editor actions backed by Fabric.js, while the XState store holds serializable application state such as the image URL, active color, and stroke width. The same editor actions are used by the toolbar and agent tools, so human and agent edits behave consistently.

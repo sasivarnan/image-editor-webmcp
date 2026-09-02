@@ -1,5 +1,12 @@
 import { useSelector, useStore } from "@xstate/store-react";
-import { Bold, Eraser, Italic, RotateCcw, RotateCw, Trash2 } from "lucide-react";
+import {
+  Bold,
+  Eraser,
+  Italic,
+  RotateCcw,
+  RotateCw,
+  Trash2,
+} from "lucide-react";
 import { useImageEditor } from "@ozdemircibaris/react-image-editor/core";
 import { initializeWebMCPPolyfill } from "@mcp-b/webmcp-polyfill";
 
@@ -8,7 +15,10 @@ import { toast } from "#components/ui/toast";
 import { ButtonGroup } from "#components/ui/button-group";
 
 import { useImageEditorTools } from "./webmcp/use-image-editor-tools";
-import { clearAll as clearAllEditorObjects } from "./editor/editor-actions";
+import {
+  clearAll as clearAllEditorObjects,
+  exportImage as exportEditorImage,
+} from "./editor/editor-actions";
 import { EditorHeader } from "./components/editor/EditorHeader";
 import { EditorCanvas } from "./components/editor/EditorCanvas";
 import { EditorToolbar } from "./components/editor/EditorToolbar";
@@ -28,13 +38,7 @@ const App = () => {
   const editor = useImageEditor({ imageUrl });
 
   const exportImage = () => {
-    const dataUrl = editor.exportToDataURL("png", 1);
-    if (!dataUrl) return false;
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = "image-editor-export.png";
-    link.click();
-    return true;
+    return exportEditorImage(editor);
   };
 
   const addShape = (shape: Shape) => {

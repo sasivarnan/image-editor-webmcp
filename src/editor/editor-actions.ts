@@ -256,7 +256,34 @@ export const clearAll = (editor: Editor) => {
 };
 
 export const exportImage = (editor: Editor) => {
-  const dataUrl = editor.exportToDataURL("png", 1);
+  const canvas = editor.canvas;
+  const blurRects = (editor.canvas?.getObjects() ?? []).filter(
+    (object: any) => object.id?.startsWith("blur-") && !object.isBlurPatch,
+  );
+  const blurRectIndexes = blurRects.map((object: any) => ({
+    object,
+    index: canvas?.getObjects().indexOf(object) ?? -1,
+  }));
+  const activeObject = canvas?.getActiveObject();
+
+  // Fabric's PNG renderer can retain the guide's stroke even when it is hidden.
+  // Remove the editable rectangle outright while rasterizing; its linked blur
+  // patch stays on the canvas and supplies the actual effect.
+  blurRects.forEach((object: any) => {
+    canvas?.remove(object);
+  });
+
+  let dataUrl: string | null = null;
+  try {
+    dataUrl = editor.exportToDataURL("png", 1);
+  } finally {
+    blurRectIndexes.forEach(({ object, index }: any) => {
+      canvas?.insertAt(object, index);
+    });
+    if (activeObject) canvas?.setActiveObject(activeObject);
+    canvas?.requestRenderAll();
+  }
+
   if (!dataUrl) return false;
   const link = document.createElement("a");
   link.href = dataUrl;

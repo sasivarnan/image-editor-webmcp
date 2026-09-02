@@ -188,7 +188,9 @@ const App = () => {
     }
   };
 
-  useImageEditorTools(editor);
+  useImageEditorTools(editor, (nextImageUrl) => {
+    store.trigger.setImageUrl({ imageUrl: nextImageUrl });
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans antialiased">

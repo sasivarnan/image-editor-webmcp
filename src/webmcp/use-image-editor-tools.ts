@@ -10,7 +10,9 @@ import {
   describeObject,
   editableObjects,
   exportImage,
+  getImageMetrics,
   moveSelected,
+  resizeSelected,
   selectObject,
   updateSelected,
 } from "../editor/editor-actions";
@@ -21,7 +23,34 @@ const schema = (properties: object, required: string[] = []) => ({
   ...(required.length ? { required } : {}),
 });
 
-export function useImageEditorTools(editor: any) {
+export function useImageEditorTools(
+  editor: any,
+  onUploadImage?: (imageUrl: string) => void,
+) {
+  useWebMCP({
+    name: "image_editor_upload",
+    description:
+      "Upload an image from a URL or a base64-encoded image data URL.",
+    inputSchema: schema(
+      {
+        imageUrl: {
+          type: "string",
+          description:
+            "An image URL or a base64-encoded data URL such as data:image/png;base64,...",
+        },
+      },
+      ["imageUrl"],
+    ) as any,
+    execute: (({ imageUrl }: any) => {
+      if (!/^https?:\/\/|^data:image\//i.test(imageUrl)) {
+        return "Provide a valid image URL or base64-encoded image data URL.";
+      }
+
+      onUploadImage?.(imageUrl);
+      return "Image uploaded.";
+    }) as any,
+  });
+
   useWebMCP({
     name: "image_editor_add_text",
     description: "Add editable text to the image.",
@@ -53,13 +82,32 @@ export function useImageEditorTools(editor: any) {
 
   useWebMCP({
     name: "image_editor_add_blur",
-    description: "Add a movable blur region.",
-    inputSchema: schema({}) as any,
-    execute: (() => {
-      addBlur(editor);
-
-      return "Blur region added.";
+    description:
+      "Add a blur region. Optionally provide x and y for its top-left position and width and height, all in image-local coordinates.",
+    inputSchema: schema({
+      x: {
+        type: "number",
+        description: "Top-left x-coordinate relative to the image.",
+      },
+      y: {
+        type: "number",
+        description: "Top-left y-coordinate relative to the image.",
+      },
+      width: {
+        type: "number",
+        exclusiveMinimum: 0,
+        description: "Blur width in image pixels.",
+      },
+      height: {
+        type: "number",
+        exclusiveMinimum: 0,
+        description: "Blur height in image pixels.",
+      },
     }) as any,
+    execute: (async (options: any) =>
+      (await addBlur(editor, options))
+        ? "Blur region added in image coordinates."
+        : "Unable to add blur region. Make sure an image is loaded.") as any,
   });
   useWebMCP({
     name: "image_editor_toggle_drawing",
@@ -72,22 +120,22 @@ export function useImageEditorTools(editor: any) {
   });
   useWebMCP({
     name: "image_editor_draw_stroke",
-    description: "Draw an editable freehand stroke using image/canvas coordinates.",
+    description: "Draw an editable freehand stroke using coordinates relative to the image.",
     inputSchema: schema({
-      points: { type: "array", minItems: 2, items: { type: "object", properties: { x: { type: "number" }, y: { type: "number" } }, required: ["x", "y"] } },
+      points: { type: "array", minItems: 2, description: "Points in image-local coordinates.", items: { type: "object", properties: { x: { type: "number", description: "X-coordinate relative to the image." }, y: { type: "number", description: "Y-coordinate relative to the image." } }, required: ["x", "y"] } },
       color: { type: "string" },
-      width: { type: "number", minimum: 1, maximum: 32 },
+      width: { type: "number", minimum: 1, maximum: 32, description: "Stroke width in image pixels." },
     }, ["points"]) as any,
     execute: (({ points, color, width }: any) => drawStroke(editor, points, color, width) ? "Freehand stroke drawn." : "At least two points are required.") as any,
   });
   useWebMCP({
     name: "image_editor_draw_arrow",
-    description: "Draw an editable arrow using image/canvas coordinates.",
+    description: "Draw an editable arrow using coordinates relative to the image.",
     inputSchema: schema({
-      start: { type: "object", properties: { x: { type: "number" }, y: { type: "number" } }, required: ["x", "y"] },
-      end: { type: "object", properties: { x: { type: "number" }, y: { type: "number" } }, required: ["x", "y"] },
+      start: { type: "object", description: "Arrow start in image-local coordinates.", properties: { x: { type: "number" }, y: { type: "number" } }, required: ["x", "y"] },
+      end: { type: "object", description: "Arrow end in image-local coordinates.", properties: { x: { type: "number" }, y: { type: "number" } }, required: ["x", "y"] },
       color: { type: "string" },
-      width: { type: "number", minimum: 1, maximum: 32 },
+      width: { type: "number", minimum: 1, maximum: 32, description: "Arrow width in image pixels." },
     }, ["start", "end"]) as any,
     execute: (({ start, end, color, width }: any) => drawArrow(editor, start, end, color, width) ? "Arrow drawn." : "Unable to draw arrow.") as any,
   });
@@ -105,11 +153,21 @@ export function useImageEditorTools(editor: any) {
 
   useWebMCP({
     name: "image_editor_move_selected",
-    description: "Move selected object using image/canvas coordinates.",
-    inputSchema: schema({ x: { type: "number" }, y: { type: "number" } }, [
-      "x",
-      "y",
-    ]) as any,
+    description:
+      "Move the selected object so its visual bounding box top-left is at image-local coordinates. x and y are relative to the image's top-left corner, independent of page coordinates and zoom. The object is clamped inside the image.",
+    inputSchema: schema(
+      {
+        x: {
+          type: "number",
+          description: "Visual bounding-box top-left x-coordinate relative to the image.",
+        },
+        y: {
+          type: "number",
+          description: "Visual bounding-box top-left y-coordinate relative to the image.",
+        },
+      },
+      ["x", "y"],
+    ) as any,
     execute: (({ x, y }: any) =>
       moveSelected(editor, x, y)
         ? `Selected object moved to (${x}, ${y}).`
@@ -118,7 +176,7 @@ export function useImageEditorTools(editor: any) {
 
   useWebMCP({
     name: "image_editor_list_objects",
-    description: "List editable objects and their image/canvas coordinates.",
+    description: "List editable objects and their image-local coordinates.",
     inputSchema: schema({}) as any,
     annotations: { readOnlyHint: true },
     execute: (() =>
@@ -173,8 +231,34 @@ export function useImageEditorTools(editor: any) {
   });
 
   useWebMCP({
+    name: "image_editor_bold_selected_text",
+    description: "Make the selected text object bold.",
+    inputSchema: schema({}) as any,
+    execute: (() => {
+      const selected = editor.selection.selected;
+      if (!selected?.isText) return "Select a text object first.";
+      return updateSelected(editor, { fontWeight: "bold" })
+        ? "Selected text made bold."
+        : "Unable to update selected text.";
+    }) as any,
+  });
+
+  useWebMCP({
+    name: "image_editor_italicize_selected_text",
+    description: "Italicize the selected text object.",
+    inputSchema: schema({}) as any,
+    execute: (() => {
+      const selected = editor.selection.selected;
+      if (!selected?.isText) return "Select a text object first.";
+      return updateSelected(editor, { fontStyle: "italic" })
+        ? "Selected text italicized."
+        : "Unable to update selected text.";
+    }) as any,
+  });
+
+  useWebMCP({
     name: "image_editor_resize_selected",
-    description: "Resize selected object using canvas-coordinate dimensions.",
+    description: "Resize the selected object using dimensions in image pixels.",
     inputSchema: schema(
       {
         width: { type: "number", exclusiveMinimum: 0 },
@@ -183,12 +267,7 @@ export function useImageEditorTools(editor: any) {
       ["width", "height"],
     ) as any,
     execute: (({ width, height }: any) => {
-      const selected = editor.selection.selected;
-      if (!selected) return "No object is selected.";
-      return updateSelected(editor, {
-        scaleX: width / (selected.width || 1),
-        scaleY: height / (selected.height || 1),
-      })
+      return resizeSelected(editor, width, height)
         ? `Selected object resized to ${width} by ${height}.`
         : "No object is selected.";
     }) as any,
@@ -276,14 +355,26 @@ export function useImageEditorTools(editor: any) {
 
   useWebMCP({
     name: "image_editor_get_status",
-    description: "Read editor status.",
+    description: "Read editor status and image-local coordinate metadata.",
     inputSchema: schema({}) as any,
     annotations: { readOnlyHint: true },
-    execute: (() => ({
-      hasImage: editor.hasImage,
-      drawing: editor.drawing.isActive,
-      cropping: editor.crop.isActive,
-      zoom: editor.zoom.level,
-    })) as any,
+    execute: (() => {
+      const image = getImageMetrics(editor);
+      return {
+        hasImage: editor.hasImage,
+        drawing: editor.drawing.isActive,
+        cropping: editor.crop.isActive,
+        zoom: editor.zoom.level,
+        coordinateSpace: "image",
+        image: image
+          ? {
+              width: image.width / image.scaleX,
+              height: image.height / image.scaleY,
+              canvasOrigin: { x: image.left, y: image.top },
+              scale: { x: image.scaleX, y: image.scaleY },
+            }
+          : null,
+      };
+    }) as any,
   });
 }

@@ -19,6 +19,10 @@ export const imageEditorLogic = createStoreLogic({
       if (!file || !file.type.startsWith("image/")) return context;
       return { ...context, imageUrl: URL.createObjectURL(file) };
     },
+    setImageUrl: (context, event: { imageUrl: string }) => ({
+      ...context,
+      imageUrl: event.imageUrl,
+    }),
     setColor: (context, event: { color: string }) => ({ ...context, color: event.color }),
     setStrokeWidth: (context, event: { width: number }) => ({ ...context, strokeWidth: event.width }),
   },

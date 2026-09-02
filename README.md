@@ -1,6 +1,6 @@
 # Image Editor for Humans and Browser Agents
 
-A lightweight React image editor for adding text, shapes, blur regions, and drawings. It works for people through a visual toolbar and for browser agents through WebMCP.
+A local-first image editor where humans and browser agents collaborate through WebMCP. Editing state, transformations, and exports run in the browser while people and agents add, style, and position edits.
 
 ## WebMCP tools
 
@@ -37,7 +37,7 @@ Positions, drawing points, and dimensions use image-local coordinates and image 
 ```mermaid
 flowchart LR
   Person[Person] -->|Plain-language request| Agent[Browser agent]
-  Agent -->|WebMCP tool calls| Page[React image editor page]
+  Agent -->|WebMCP tool calls| Page[Local image editor]
   Page --> Tools[WebMCP tool hook]
   Tools --> Actions[Shared editor actions]
   Actions --> Canvas[Fabric.js canvas]
@@ -63,11 +63,11 @@ pnpm build
 
 ## Why this is a strong fit for WebMCP
 
-Image editing is naturally multi-step: add an object, select it, style it, position it, adjust it, and export it. These steps are easy for a person but awkward for an agent when the only interface is a visual canvas. WebMCP exposes the editor's real actions as structured browser tools, so an agent can work with the page instead of guessing at clicks and coordinates.
+Image editing is naturally multi-step: add an object, select it, style it, position it, adjust it, and export it. These steps are easy for a person but awkward for an agent when the only interface is a visual canvas. WebMCP exposes the editor's real actions as structured browser tools, so an agent can work with the page instead of guessing at clicks and coordinates. Because the editor is local-first, editing does not require a remote image-processing backend.
 
 ## How it creates a better experience
 
-People can describe the outcome in plain language while the agent handles the sequence of edits. The person remains in control of the visual result, and the agent can use object IDs, canvas coordinates, and status checks to make precise changes. This makes tasks such as privacy redaction, visual callouts, and social-media annotations possible in one turn.
+People can describe the outcome in plain language while the agent handles the sequence of edits. The person remains in control of the visual result, and the agent can use object IDs, image-local coordinates, and status checks to make precise changes. Edits feel fast and private because they run locally in the browser, making tasks such as privacy redaction, visual callouts, and social-media annotations possible in one turn.
 
 ## What people and agents can do together
 
@@ -79,4 +79,8 @@ The agent can inspect what is on the canvas, select the right object, make targe
 
 ## How WebMCP is implemented
 
-The page registers structured tools with WebMCP. Tool calls delegate to shared editor actions backed by Fabric.js, while the XState store holds serializable application state such as the image URL, active color, and stroke width. The same editor actions are used by the toolbar and agent tools, so human and agent edits behave consistently.
+The page registers structured tools with WebMCP. Tool calls delegate to shared editor actions backed by Fabric.js, while the XState store holds serializable application state such as the image URL, active color, and stroke width. All editing and export work happens in the browser; no editing backend is required. The same editor actions are used by the toolbar and agent tools, so human and agent edits behave consistently.
+
+## What's next
+
+We plan to add local-first object recognition with MediaPipe, allowing the editor to detect faces, products, and other subjects directly in the browser. This would bring subject detection into the same private, local execution model as editing and export.
